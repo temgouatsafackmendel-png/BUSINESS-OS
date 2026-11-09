@@ -1,0 +1,311 @@
+// ============================================================================
+// BUSINESS OS 2026 — PRISMA RELATIONAL SCHEMA (POSTGRESQL 16 MULTI-TENANT)
+// Author: Mendel Temgoua (mendeltemgouabusiness@gmail.com)
+// License: MIT
+// ============================================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Organization {
+  id                String             @id @default(cuid())
+  name              String
+  slug              String             @unique
+  legalForm         String             @default("SARL")
+  taxId             String
+  ohadaZone         String             @default("OHADA-CEMAC")
+  currency          String             @default("XAF")
+  defaultVatPercent Decimal            @default(19.25) @db.Decimal(5, 2)
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+
+  workspaces        Workspace[]
+  memberships       Membership[]
+  accounts          Account[]
+  transactions      Transaction[]
+  accountingEntries AccountingEntry[]
+  contacts          CrmContact[]
+  commercialDocs    CommercialDoc[]
+  inventoryItems    InventoryItem[]
+  stockMovements    StockMovement[]
+  employees         Employee[]
+  projectTasks      ProjectTask[]
+  documents         Document[]
+  workflows         Workflow[]
+  auditLogs         AuditLog[]
+
+  @@index([slug])
+  @@map("organizations")
+}
+
+model Workspace {
+  id             String       @id @default(cuid())
+  organizationId String
+  name           String
+  code           String
+  department     String
+  isDefault      Boolean      @default(false)
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@map("workspaces")
+}
+
+model Membership {
+  id             String       @id @default(cuid())
+  organizationId String
+  fullName       String
+  email          String
+  roleName       String
+  permissionsCsv String
+  mfaEnabled     Boolean      @default(true)
+  status         String       @default("ACTIVE")
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, email])
+  @@map("memberships")
+}
+
+model Account {
+  id             String        @id @default(cuid())
+  organizationId String
+  name           String
+  accountNumber  String
+  ohadaCode      String
+  type           String        // BANK, CASH, MOBILE_MONEY, RECEIVABLE, PAYABLE
+  balanceCents   BigInt        @default(0)
+  currency       String        @default("XAF")
+  organization   Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  transactions   Transaction[]
+
+  @@index([organizationId, ohadaCode])
+  @@map("accounts")
+}
+
+model Transaction {
+  id               String       @id @default(cuid())
+  organizationId   String
+  accountId        String
+  reference        String       @unique
+  type             String       // INCOME, EXPENSE, TRANSFER, DEBT, RECEIVABLE
+  category         String
+  amountCents      BigInt
+  taxAmountCents   BigInt       @default(0)
+  currency         String       @default("XAF")
+  paymentMethod    String       // MANUAL, MTN_MOMO, ORANGE_MONEY, CAMPAY, MONEY_FUSION, STRIPE, PAYPAL, BANK_TRANSFER
+  status           String       // VALIDATED, PENDING, RECONCILED, REVERSED
+  description      String
+  supportingDocRef String?
+  timestamp        DateTime     @default(now())
+
+  organization     Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  account          Account      @relation(fields: [accountId], references: [id], onDelete: Restrict)
+
+  @@index([organizationId, timestamp])
+  @@map("transactions")
+}
+
+model AccountingEntry {
+  id              String       @id @default(cuid())
+  organizationId  String
+  journalCode     String       // VE, AC, BQ, CA, OD
+  reference       String
+  ohadaDebitCode  String
+  ohadaDebitName  String
+  ohadaCreditCode String
+  ohadaCreditName String
+  amountCents     BigInt
+  taxRatePercent  Decimal      @db.Decimal(5, 2)
+  description     String
+  isReconciled    Boolean      @default(false)
+  entryDate       DateTime     @default(now())
+
+  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+
+  @@index([organizationId, journalCode])
+  @@map("accounting_entries")
+}
+
+model CrmContact {
+  id                  String          @id @default(cuid())
+  organizationId      String
+  kind                String          // LEAD, CUSTOMER, SUPPLIER
+  companyName         String
+  contactName         String
+  email               String
+  phone               String
+  stage               String
+  estimatedValueCents BigInt          @default(0)
+  sourceCampaign      String
+  historyLog          String
+  convertedFromLeadAt DateTime?
+  createdAt           DateTime        @default(now())
+
+  organization        Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  commercialDocs      CommercialDoc[]
+
+  @@index([organizationId, kind])
+  @@map("crm_contacts")
+}
+
+model CommercialDoc {
+  id               String       @id @default(cuid())
+  organizationId   String
+  contactId        String
+  contactName      String
+  docType          String       // QUOTE, ORDER, INVOICE, CREDIT_NOTE, CONTRACT, SUBSCRIPTION
+  docNumber        String       @unique
+  itemsDescription String
+  subtotalCents    BigInt
+  taxCents         BigInt
+  totalCents       BigInt
+  paidCents        BigInt       @default(0)
+  currency         String       @default("XAF")
+  status           String       // DRAFT, SENT, APPROVED, PARTIAL, PAID, OVERDUE, CANCELLED
+  dueDate          DateTime
+  createdAt        DateTime     @default(now())
+
+  organization     Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  contact          CrmContact   @relation(fields: [contactId], references: [id], onDelete: Restrict)
+
+  @@index([organizationId, docType])
+  @@map("commercial_docs")
+}
+
+model InventoryItem {
+  id                String          @id @default(cuid())
+  organizationId    String
+  sku               String
+  name              String
+  kind              String          // PRODUCT, SERVICE
+  category          String
+  unitPriceCents    BigInt
+  costPriceCents    BigInt
+  stockQuantity     Int             @default(0)
+  minStockAlert     Int             @default(3)
+  supplierName      String
+  warehouseLocation String
+
+  organization      Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  movements         StockMovement[]
+
+  @@unique([organizationId, sku])
+  @@map("inventory_items")
+}
+
+model StockMovement {
+  id             String        @id @default(cuid())
+  organizationId String
+  productId      String
+  productName    String
+  movementType   String        // IN, OUT, ADJUSTMENT
+  quantity       Int
+  reason         String
+  timestamp      DateTime      @default(now())
+
+  organization   Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  product        InventoryItem @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, productId])
+  @@map("stock_movements")
+}
+
+model Employee {
+  id               String       @id @default(cuid())
+  organizationId   String
+  fullName         String
+  roleTitle        String
+  department       String
+  contractType     String       // CDI, CDD, CONSULTANT
+  baseSalaryCents  BigInt
+  leaveBalanceDays Int          @default(24)
+  performanceScore Int          @default(90)
+  status           String       @default("ACTIVE")
+
+  organization     Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, department])
+  @@map("employees")
+}
+
+model ProjectTask {
+  id              String       @id @default(cuid())
+  organizationId  String
+  projectName     String
+  taskTitle       String
+  assigneeName    String
+  priority        String       // LOW, MEDIUM, HIGH, CRITICAL
+  status          String       // TODO, IN_PROGRESS, REVIEW, DONE
+  budgetCents     BigInt
+  progressPercent Int          @default(0)
+  dueDate         DateTime
+  commentsLog     String
+
+  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, status])
+  @@map("projects_tasks")
+}
+
+model Document {
+  id             String       @id @default(cuid())
+  organizationId String
+  title          String
+  category       String
+  fileName       String
+  mimeType       String
+  sizeBytes      BigInt
+  storageDriver  String       // LOCAL_FS, S3_MINIO_COMPATIBLE
+  accessLevel    String       // PUBLIC_ORG, FINANCE_ONLY, ADMIN_ONLY
+  version        Int          @default(1)
+  checksumSha256 String
+  contentPreview String
+  isArchived     Boolean      @default(false)
+  createdAt      DateTime     @default(now())
+
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, category])
+  @@map("documents")
+}
+
+model Workflow {
+  id                    String       @id @default(cuid())
+  organizationId        String
+  name                  String
+  triggerEvent          String
+  conditionExpr         String
+  actionType            String
+  requiresHumanApproval Boolean      @default(true)
+  isActive              Boolean      @default(true)
+  runCount              Int          @default(0)
+  lastRunStatus         String       @default("READY")
+  lastRunTimestamp      DateTime     @default(now())
+
+  organization          Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@map("workflows")
+}
+
+model AuditLog {
+  id             String       @id @default(cuid())
+  organizationId String
+  actorName      String
+  action         String
+  module         String
+  severity       String       // INFO, WARNING, SECURITY_CRITICAL
+  details        String
+  timestamp      DateTime     @default(now())
+
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+
+  @@index([organizationId, timestamp])
+  @@map("audit_logs")
+}

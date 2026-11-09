@@ -1,0 +1,30 @@
+name: BUSINESS OS CI/CD Pipeline
+
+on:
+  push:
+    branches: [ "main", "develop" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build-and-test:
+    name: Build APK & Run Multi-Tenant / OHADA Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Prepare Environment Configuration
+        run: cp .env.example .env
+
+      - name: Execute Unit & Robolectric Multi-Tenant Isolation Tests
+        run: gradle :app:testDebugUnitTest
+
+      - name: Assemble Debug APK
+        run: gradle :app:assembleDebug

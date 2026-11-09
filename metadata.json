@@ -1,0 +1,6 @@
+{
+  "name": "Business OS",
+  "description": "Open-Source MIT Enterprise Management Operating System — Multi-tenant ERP, Finance, OHADA Accounting, CRM, Sales, Inventory, HR, Projects, Workflows & Optional Pluggable Business AI",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -1,0 +1,14 @@
+<resources>
+    <string name="app_name">Business OS</string>
+    <string name="erp_tagline">Enterprise Management Operating System • MIT Open Source</string>
+    <string name="nav_dashboard">Dashboard</string>
+    <string name="nav_finances">Finances</string>
+    <string name="nav_accounting">Comptabilité</string>
+    <string name="nav_crm">CRM &amp; Ventes</string>
+    <string name="nav_operations">Stocks &amp; Achats</string>
+    <string name="nav_hr_projects">RH &amp; Projets</string>
+    <string name="nav_documents">Documents</string>
+    <string name="nav_automations">Automations</string>
+    <string name="nav_business_ai">Business AI</string>
+    <string name="nav_admin">Admin &amp; Sécurité</string>
+</resources>
