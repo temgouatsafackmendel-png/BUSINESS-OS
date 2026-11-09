@@ -8,6 +8,7 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.CallMade
@@ -21,11 +22,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.R
 import com.example.data.local.*
 import com.example.ui.components.*
@@ -54,102 +58,137 @@ fun DashboardScreen(
         modifier = Modifier
             .fillMaxSize()
             .padding(horizontal = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(14.dp),
-        contentPadding = PaddingValues(top = 12.dp, bottom = 96.dp)
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+        contentPadding = PaddingValues(top = 14.dp, bottom = 104.dp)
     ) {
-        // 1. Hero Enterprise Command Banner
+        // 1. Sleek Executive Hero Card (Fintech / Linear Aesthetic)
         item {
-            Card(
-                shape = RoundedCornerShape(18.dp),
-                border = BorderStroke(1.dp, ElectricGreen.copy(alpha = 0.35f)),
+            Surface(
+                shape = RoundedCornerShape(20.dp),
+                color = ObsidianBlack,
+                border = BorderStroke(1.dp, SlateBorder),
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Box(modifier = Modifier.fillMaxWidth().height(156.dp)) {
+                Box(modifier = Modifier.fillMaxWidth()) {
                     Image(
                         painter = painterResource(id = R.drawable.img_erp_hero_banner_1794221609547),
                         contentDescription = "Business OS Command Center",
                         contentScale = ContentScale.Crop,
-                        modifier = Modifier.fillMaxSize()
+                        alpha = 0.28f,
+                        modifier = Modifier
+                            .matchParentSize()
                     )
                     Box(
                         modifier = Modifier
-                            .fillMaxSize()
+                            .matchParentSize()
                             .background(
-                                Brush.horizontalGradient(
+                                Brush.verticalGradient(
                                     listOf(
-                                        ObsidianBlack.copy(alpha = 0.92f),
-                                        ObsidianBlack.copy(alpha = 0.75f),
-                                        ObsidianBlack.copy(alpha = 0.45f)
+                                        ObsidianBlack.copy(alpha = 0.72f),
+                                        ObsidianBlack.copy(alpha = 0.94f)
                                     )
                                 )
                             )
-                            .padding(16.dp)
+                    )
+
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(20.dp),
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
-                        Column(
-                            modifier = Modifier.fillMaxSize(),
-                            verticalArrangement = Arrangement.SpaceBetween
+                        // Top metadata & widget customizer
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
                             Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                ErpStatusBadge(organization?.ohadaZone ?: "OHADA • CEMAC", ElectricGreen)
+                                ErpStatusBadge("MIT • LOCAL-FIRST", SecondaryEmerald)
+                            }
+                            Surface(
+                                shape = RoundedCornerShape(8.dp),
+                                color = SlateSurface,
+                                border = BorderStroke(0.8.dp, SlateBorder),
+                                modifier = Modifier
+                                    .clickable { showCustomizeDialog = true }
+                                    .testTag("customize_widgets_button")
                             ) {
                                 Row(
+                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
                                     verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                    horizontalArrangement = Arrangement.spacedBy(5.dp)
                                 ) {
-                                    ErpStatusBadge("MIT OPEN SOURCE • AUTO-HÉBERGÉ", ElectricGreen)
-                                    ErpStatusBadge(organization?.ohadaZone ?: "OHADA", SecondaryEmerald)
-                                }
-                                OutlinedButton(
-                                    onClick = { showCustomizeDialog = true },
-                                    shape = RoundedCornerShape(8.dp),
-                                    border = BorderStroke(1.dp, ElectricGreen.copy(alpha = 0.6f)),
-                                    contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
-                                    modifier = Modifier.testTag("customize_widgets_button")
-                                ) {
-                                    Icon(Icons.Default.Tune, contentDescription = "Widgets", tint = ElectricGreen, modifier = Modifier.size(15.dp))
-                                    Spacer(Modifier.width(4.dp))
-                                    Text("Widgets", style = MaterialTheme.typography.labelMedium, color = CrispWhite)
+                                    Icon(Icons.Default.Tune, contentDescription = "Widgets", tint = ElectricGreen, modifier = Modifier.size(14.dp))
+                                    Text("Widgets", style = MaterialTheme.typography.labelSmall, color = CrispWhite)
                                 }
                             }
+                        }
 
-                            Column {
+                        // Primary Organization Balance & Net Cash Position
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.Bottom
+                        ) {
+                            Column(verticalArrangement = Arrangement.spacedBy(4.dp), modifier = Modifier.weight(1f)) {
                                 Text(
-                                    text = organization?.name ?: "TechNova Africa SARL",
-                                    style = MaterialTheme.typography.headlineLarge,
+                                    text = "TRÉSORERIE CONSOLIDÉE • ${organization?.name?.uppercase() ?: "ENTREPRISE"}",
+                                    style = MaterialTheme.typography.labelSmall.copy(letterSpacing = 0.9.sp),
+                                    color = MutedSteelGray
+                                )
+                                Text(
+                                    text = BusinessOsViewModel.formatMoney(metrics.availableTreasuryCents, currency),
+                                    style = MaterialTheme.typography.displayMedium.copy(
+                                        fontFamily = JetBrainsMonoFontFamily,
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 28.sp
+                                    ),
                                     color = CrispWhite
                                 )
                                 Text(
-                                    text = "ID Fiscal : ${organization?.taxId ?: "RCCM"} • Devise : $currency • Données 100% SQLite Réelles",
+                                    text = "Marge nette : ${String.format(Locale.US, "%.1f", metrics.netMarginPercent)}% • Bénéfice : ${BusinessOsViewModel.formatMoney(metrics.netProfitCents, currency)}",
                                     style = MaterialTheme.typography.bodySmall,
-                                    color = MutedSteelGray
+                                    color = ElectricGreen
                                 )
                             }
+                        }
 
-                            // Time Filter Chips
-                            Row(
-                                modifier = Modifier.horizontalScroll(rememberScrollState()),
-                                horizontalArrangement = Arrangement.spacedBy(8.dp)
-                            ) {
-                                TimePeriodFilter.entries.forEach { period ->
-                                    val active = period == selectedPeriod
-                                    Surface(
-                                        shape = RoundedCornerShape(8.dp),
-                                        color = if (active) ElectricGreen else SlateSurface.copy(alpha = 0.85f),
-                                        border = BorderStroke(1.dp, if (active) ElectricGreen else SlateBorder),
-                                        modifier = Modifier
-                                            .clickable { onSelectPeriod(period) }
-                                            .testTag("period_filter_${period.name}")
-                                    ) {
-                                        Text(
-                                            text = period.label,
-                                            style = MaterialTheme.typography.labelMedium,
-                                            fontWeight = FontWeight.Bold,
-                                            color = if (active) ObsidianBlack else CrispWhite,
-                                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp)
-                                        )
-                                    }
+                        HorizontalDivider(color = SlateBorder.copy(alpha = 0.7f))
+
+                        // Segmented Time Period Bar
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .horizontalScroll(rememberScrollState()),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "Période :",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MutedSteelGray
+                            )
+                            TimePeriodFilter.entries.forEach { period ->
+                                val active = period == selectedPeriod
+                                Surface(
+                                    shape = RoundedCornerShape(8.dp),
+                                    color = if (active) ElectricGreen else SlateSurface,
+                                    border = BorderStroke(0.8.dp, if (active) ElectricGreen else SlateBorder),
+                                    modifier = Modifier
+                                        .clickable { onSelectPeriod(period) }
+                                        .testTag("period_filter_${period.name}")
+                                ) {
+                                    Text(
+                                        text = period.label,
+                                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                                        color = if (active) ObsidianBlack else CrispWhite,
+                                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                                    )
                                 }
                             }
                         }
@@ -158,48 +197,90 @@ fun DashboardScreen(
             }
         }
 
-        // 2. Smart Alerts Banner (Factures impayées & Stocks bas)
+        // 2. Quick Executive Action Strip
+        item {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                QuickActionPill(
+                    label = "Nouvelle Transaction",
+                    icon = Icons.Default.AddCard,
+                    accent = ElectricGreen,
+                    onClick = { onNavigateModule(ErpPrimaryModule.FINANCES) }
+                )
+                QuickActionPill(
+                    label = "Émettre Facture / Devis",
+                    icon = Icons.AutoMirrored.Filled.ReceiptLong,
+                    accent = SecondaryEmerald,
+                    onClick = { onNavigateModule(ErpPrimaryModule.CRM_SALES) }
+                )
+                QuickActionPill(
+                    label = "Journal OHADA",
+                    icon = Icons.Default.AccountBalance,
+                    accent = StatusInfo,
+                    onClick = { onNavigateModule(ErpPrimaryModule.FINANCES) }
+                )
+                QuickActionPill(
+                    label = "Business AI Analyst",
+                    icon = Icons.Default.AutoAwesome,
+                    accent = ElectricGreen,
+                    onClick = { onNavigateModule(ErpPrimaryModule.DOCS_AI_AUTO) }
+                )
+            }
+        }
+
+        // 3. Minimalist Smart Alert Strip
         if (widgetConfig.showAlertsBanner && (metrics.unpaidInvoicesCount > 0 || metrics.lowStockCount > 0)) {
             item {
                 Surface(
-                    shape = RoundedCornerShape(12.dp),
-                    color = StatusWarning.copy(alpha = 0.12f),
-                    border = BorderStroke(1.dp, StatusWarning.copy(alpha = 0.45f)),
-                    modifier = Modifier.fillMaxWidth()
+                    shape = RoundedCornerShape(14.dp),
+                    color = StatusWarning.copy(alpha = 0.08f),
+                    border = BorderStroke(0.8.dp, StatusWarning.copy(alpha = 0.4f)),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onNavigateModule(ErpPrimaryModule.CRM_SALES) }
                 ) {
                     Row(
-                        modifier = Modifier.padding(12.dp),
+                        modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        Icon(Icons.Default.WarningAmber, contentDescription = "Alertes", tint = StatusWarning)
-                        Column(modifier = Modifier.weight(1f)) {
+                        Box(
+                            modifier = Modifier
+                                .size(32.dp)
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(StatusWarning.copy(alpha = 0.16f)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(Icons.Default.NotificationsActive, contentDescription = "Alertes", tint = StatusWarning, modifier = Modifier.size(17.dp))
+                        }
+                        Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                             Text(
-                                text = "Alertes d'Exploitation Temps Réel",
-                                style = MaterialTheme.typography.titleSmall,
-                                fontWeight = FontWeight.Bold,
+                                text = "${metrics.unpaidInvoicesCount} facture(s) à recouvrer • ${metrics.lowStockCount} alerte(s) de stock",
+                                style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.SemiBold),
                                 color = MaterialTheme.colorScheme.onSurface
                             )
                             Text(
-                                text = "${metrics.unpaidInvoicesCount} facture(s) en attente (${BusinessOsViewModel.formatMoney(metrics.unpaidInvoicesCents, currency)}) • ${metrics.lowStockCount} produit(s) sous le seuil de stock critique.",
+                                text = "Encours client en attente : ${BusinessOsViewModel.formatMoney(metrics.unpaidInvoicesCents, currency)}",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
-                        TextButton(onClick = { onNavigateModule(ErpPrimaryModule.CRM_SALES) }) {
-                            Text("Traiter", color = StatusWarning, fontWeight = FontWeight.Bold)
-                        }
+                        Icon(Icons.Default.ArrowForwardIos, contentDescription = null, tint = StatusWarning, modifier = Modifier.size(14.dp))
                     }
                 }
             }
         }
 
-        // 3. Complete 14-Indicator Real-Time KPI Grid
+        // 4. Bento-Grid KPI Matrix
         if (widgetConfig.showFinancialKpis) {
             item {
                 ErpSectionHeader(
-                    title = "Indicateurs Financiers & Opérationnels",
-                    subtitle = "Calculés en direct depuis la base relationnelle (${selectedPeriod.label})"
+                    title = "Synthèse Financière & Commerciale",
+                    subtitle = "Indicateurs temps réel certifiés depuis la base SQLite"
                 )
             }
             item {
@@ -208,7 +289,7 @@ fun DashboardScreen(
                         ErpKpiCard(
                             title = "Chiffre d'Affaires",
                             value = BusinessOsViewModel.formatMoney(metrics.revenueBilledCents, currency),
-                            subtitle = "${metrics.salesDocsCount} documents commerciaux",
+                            subtitle = "${metrics.salesDocsCount} pièces commerciales",
                             icon = Icons.AutoMirrored.Filled.TrendingUp,
                             accentColor = ElectricGreen,
                             modifier = Modifier.weight(1f),
@@ -217,7 +298,7 @@ fun DashboardScreen(
                         ErpKpiCard(
                             title = "Revenus Encaissés",
                             value = BusinessOsViewModel.formatMoney(metrics.revenueCollectedCents, currency),
-                            subtitle = "Trésorerie entrante validée",
+                            subtitle = "Trésorerie entrante",
                             icon = Icons.Default.AccountBalanceWallet,
                             accentColor = SecondaryEmerald,
                             modifier = Modifier.weight(1f),
@@ -227,18 +308,18 @@ fun DashboardScreen(
 
                     Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
                         ErpKpiCard(
-                            title = "Dépenses Validées",
+                            title = "Charges & Dépenses",
                             value = BusinessOsViewModel.formatMoney(metrics.expensesTotalCents, currency),
-                            subtitle = "Charges & achats décaissés",
+                            subtitle = "Décaissements validés",
                             icon = Icons.AutoMirrored.Filled.CallMade,
                             accentColor = StatusDanger,
                             modifier = Modifier.weight(1f),
                             onClick = { onNavigateModule(ErpPrimaryModule.FINANCES) }
                         )
                         ErpKpiCard(
-                            title = "Bénéfice Net & Marge",
+                            title = "Bénéfice Net",
                             value = BusinessOsViewModel.formatMoney(metrics.netProfitCents, currency),
-                            subtitle = "Marge nette : ${String.format(Locale.US, "%.1f", metrics.netMarginPercent)}%",
+                            subtitle = "Marge : ${String.format(Locale.US, "%.1f", metrics.netMarginPercent)}%",
                             icon = Icons.Default.Analytics,
                             accentColor = if (metrics.netProfitCents >= 0) ElectricGreen else StatusDanger,
                             modifier = Modifier.weight(1f),
@@ -248,28 +329,16 @@ fun DashboardScreen(
 
                     Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
                         ErpKpiCard(
-                            title = "Trésorerie Disponible",
-                            value = BusinessOsViewModel.formatMoney(metrics.availableTreasuryCents, currency),
-                            subtitle = "${accounts.count { it.type != "RECEIVABLE" && it.type != "PAYABLE" }} comptes (Banque/MoMo/Caisse)",
-                            icon = Icons.Default.AccountBalance,
-                            accentColor = ElectricGreen,
-                            modifier = Modifier.weight(1f),
-                            onClick = { onNavigateModule(ErpPrimaryModule.FINANCES) }
-                        )
-                        ErpKpiCard(
                             title = "Factures Impayées",
                             value = BusinessOsViewModel.formatMoney(metrics.unpaidInvoicesCents, currency),
-                            subtitle = "${metrics.unpaidInvoicesCount} facture(s) à recouvrer",
+                            subtitle = "${metrics.unpaidInvoicesCount} facture(s) ouverte(s)",
                             icon = Icons.AutoMirrored.Filled.ReceiptLong,
                             accentColor = if (metrics.unpaidInvoicesCount > 0) StatusWarning else SecondaryEmerald,
                             modifier = Modifier.weight(1f),
                             onClick = { onNavigateModule(ErpPrimaryModule.CRM_SALES) }
                         )
-                    }
-
-                    Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
                         ErpKpiCard(
-                            title = "Clients & Prospects",
+                            title = "CRM & Opportunités",
                             value = "${metrics.activeCustomersCount} Clients • ${metrics.activeLeadsCount} Leads",
                             subtitle = "Pipeline : ${BusinessOsViewModel.formatMoney(metrics.pipelineValueCents, currency)}",
                             icon = Icons.Default.Groups,
@@ -277,48 +346,60 @@ fun DashboardScreen(
                             modifier = Modifier.weight(1f),
                             onClick = { onNavigateModule(ErpPrimaryModule.CRM_SALES) }
                         )
+                    }
+
+                    Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
                         ErpKpiCard(
                             title = "Projets & Tâches",
-                            value = "${metrics.activeProjectsCount} Projets Actifs",
-                            subtitle = "${metrics.completedTasksCount}/${metrics.totalTasksCount} tâches terminées",
+                            value = "${metrics.activeProjectsCount} Projets",
+                            subtitle = "${metrics.completedTasksCount}/${metrics.totalTasksCount} tâches livrées",
                             icon = Icons.Default.TaskAlt,
                             accentColor = SecondaryEmerald,
                             modifier = Modifier.weight(1f),
                             onClick = { onNavigateModule(ErpPrimaryModule.HR_PROJECTS) }
+                        )
+                        ErpKpiCard(
+                            title = "Catalogue & Stocks",
+                            value = "${products.size} Références",
+                            subtitle = if (metrics.lowStockCount > 0) "${metrics.lowStockCount} sous seuil critique" else "Stocks optimaux",
+                            icon = Icons.Default.Inventory2,
+                            accentColor = if (metrics.lowStockCount > 0) StatusWarning else ElectricGreen,
+                            modifier = Modifier.weight(1f),
+                            onClick = { onNavigateModule(ErpPrimaryModule.OPERATIONS) }
                         )
                     }
                 }
             }
         }
 
-        // 4. Interactive Financial Performance Chart
+        // 5. Architectural Financial Chart Card
         if (widgetConfig.showInteractiveChart) {
             item {
                 Surface(
-                    shape = RoundedCornerShape(16.dp),
+                    shape = RoundedCornerShape(18.dp),
                     color = MaterialTheme.colorScheme.surface,
-                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.65f)),
+                    border = BorderStroke(0.8.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.45f)),
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Column(modifier = Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Column {
+                            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                                 Text(
-                                    text = "Flux de Trésorerie & Rentabilité",
-                                    style = MaterialTheme.typography.titleLarge,
+                                    text = "Trajectoire Financière & Cashflow",
+                                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                                     color = MaterialTheme.colorScheme.onSurface
                                 )
                                 Text(
-                                    text = "Comparatif Revenus Encaissés vs Dépenses (${selectedPeriod.label})",
+                                    text = "Encaissements vs Charges d'exploitation (${selectedPeriod.label})",
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
-                            ErpStatusBadge("TEMPS RÉEL", ElectricGreen)
+                            ErpStatusBadge("LIVE SQL", ElectricGreen)
                         }
 
                         val baseRev = (metrics.revenueCollectedCents / 100f).coerceAtLeast(1000f)
@@ -326,20 +407,20 @@ fun DashboardScreen(
                         InteractiveFinancialChart(
                             revenuePoints = listOf(baseRev * 0.55f, baseRev * 0.72f, baseRev * 0.68f, baseRev * 0.88f, baseRev * 0.94f, baseRev),
                             expensePoints = listOf(baseExp * 0.60f, baseExp * 0.50f, baseExp * 0.75f, baseExp * 0.62f, baseExp * 0.80f, baseExp),
-                            labels = listOf("P-5", "P-4", "P-3", "P-2", "P-1", "Actuel")
+                            labels = listOf("M-5", "M-4", "M-3", "M-2", "M-1", "Actuel")
                         )
                     }
                 }
             }
         }
 
-        // 5. Objectives & Treasury Breakdown
+        // 6. Quarterly Objectives & Treasury Accounts Bento
         if (widgetConfig.showProjectsObjectives) {
             item {
                 Surface(
                     shape = RoundedCornerShape(16.dp),
                     color = MaterialTheme.colorScheme.surface,
-                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.65f)),
+                    border = BorderStroke(0.8.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.45f)),
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -349,70 +430,91 @@ fun DashboardScreen(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
-                                text = "Objectifs Trimestriels & Exécution",
-                                style = MaterialTheme.typography.titleMedium,
+                                text = "Exécution des Objectifs Annuels",
+                                style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
                                 color = MaterialTheme.colorScheme.onSurface
                             )
                             Text(
-                                text = "${(metrics.revenueTargetProgress * 100).toInt()}% atteint",
-                                style = MaterialTheme.typography.labelMedium,
+                                text = "${(metrics.revenueTargetProgress * 100).toInt()}%",
+                                style = MaterialTheme.typography.labelLarge.copy(fontFamily = JetBrainsMonoFontFamily),
                                 color = ElectricGreen
                             )
                         }
                         LinearProgressIndicator(
                             progress = { metrics.revenueTargetProgress },
-                            modifier = Modifier.fillMaxWidth().height(9.dp).clip(RoundedCornerShape(6.dp)),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(7.dp)
+                                .clip(RoundedCornerShape(4.dp)),
                             color = ElectricGreen,
                             trackColor = MaterialTheme.colorScheme.surfaceVariant
                         )
-                        Text(
-                            text = "Objectif Croissance & Recouvrement • ${commercialDocs.count { it.status == "PAID" }} facture(s) soldée(s) • ${products.size} références actives.",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(
+                                text = "${commercialDocs.count { it.status == "PAID" }} factures soldées",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Text(
+                                text = "${transactions.size} écritures validées",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
                     }
                 }
             }
         }
 
-        // 6. All 24 Modules Directory Launcher
+        // 7. Sleek Architecture Directory (24 Modules in Clean Executive Rows)
         item {
             ErpSectionHeader(
-                title = "Architecture Modulaire (24 Modules ERP)",
-                subtitle = "Accès direct à l'ensemble des pôles métiers de BUSINESS OS"
+                title = "Pôles Métiers & Modules (24 Modules)",
+                subtitle = "Navigation directe vers chaque domaine fonctionnel"
             )
         }
         item {
             val moduleMatrix = listOf(
-                Triple("Finances, Trésorerie & Caisse", "Comptes, Transactions, Budgets, Paiements Mobile Money", ErpPrimaryModule.FINANCES),
-                Triple("Comptabilité OHADA & Fiscalité", "Plan comptable, Journaux VE/AC/BQ, Grand Livre, Balance, Bilan", ErpPrimaryModule.FINANCES),
-                Triple("CRM, Clients, Prospects & Ventes", "Pipeline, Conversion Prospect->Client, Devis, Factures, Avoirs", ErpPrimaryModule.CRM_SALES),
-                Triple("Produits, Stocks, Achats & Fournisseurs", "Catalogue, Mouvements IN/OUT, Alertes Seuil, Commandes Fournisseurs", ErpPrimaryModule.OPERATIONS),
-                Triple("RH, Collaborateurs, Projets & Tâches", "Contrats, Salaires, Congés, Kanban Projets & Performances", ErpPrimaryModule.HR_PROJECTS),
-                Triple("GED Documents, Workflows & Business AI", "Stockage Local/S3, Moteur d'Automatisations, IA Multi-Provider", ErpPrimaryModule.DOCS_AI_AUTO),
-                Triple("Multi-Tenant, Administration & Sécurité", "Organisations, RBAC, Audit Logs OWASP, Export JSON, Docker Self-Host", ErpPrimaryModule.ADMIN_SECURITY)
+                ModuleDirectoryEntry("Finances, Trésorerie & Comptabilité OHADA", "Comptes, Paiements MoMo/Banque, Journaux VE/AC/BQ, Bilan", Icons.Default.AccountBalance, ElectricGreen, ErpPrimaryModule.FINANCES),
+                ModuleDirectoryEntry("CRM, Prospects, Clients & Facturation", "Pipeline, Conversion 1-clic, Devis, Factures, Contrats, Relances", Icons.Default.PointOfSale, SecondaryEmerald, ErpPrimaryModule.CRM_SALES),
+                ModuleDirectoryEntry("Catalogue, Stocks, Achats & Fournisseurs", "Produits/Services, Mouvements IN/OUT, Alertes Seuil, Commandes", Icons.Default.Inventory2, StatusInfo, ErpPrimaryModule.OPERATIONS),
+                ModuleDirectoryEntry("Ressources Humaines, Projets & Tâches", "Collaborateurs, Contrats, Paie, Congés, Kanban & Budgets", Icons.Default.Badge, ElectricGreen, ErpPrimaryModule.HR_PROJECTS),
+                ModuleDirectoryEntry("GED Documents, Workflows & Business AI", "Coffre Local/S3 SHA-256, Automatisations, IA Ollama / Locale", Icons.Default.AutoAwesome, SecondaryEmerald, ErpPrimaryModule.DOCS_AI_AUTO),
+                ModuleDirectoryEntry("Multi-Tenant, Sécurité OWASP & Dépôt GitHub", "Organisations, RBAC, Audit Logs, Export JSON, Docker Compose", Icons.Default.AdminPanelSettings, StatusInfo, ErpPrimaryModule.ADMIN_SECURITY)
             )
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                moduleMatrix.forEachIndexed { idx, (title, desc, targetMod) ->
+                moduleMatrix.forEachIndexed { idx, item ->
                     Surface(
-                        shape = RoundedCornerShape(12.dp),
+                        shape = RoundedCornerShape(14.dp),
                         color = MaterialTheme.colorScheme.surface,
-                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.55f)),
+                        border = BorderStroke(0.8.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.45f)),
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clickable { onNavigateModule(targetMod) }
+                            .clickable { onNavigateModule(item.target) }
                             .testTag("dashboard_module_card_$idx")
                     ) {
                         Row(
                             modifier = Modifier.padding(14.dp),
                             verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.SpaceBetween
+                            horizontalArrangement = Arrangement.spacedBy(14.dp)
                         ) {
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(title, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurface)
-                                Text(desc, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Box(
+                                modifier = Modifier
+                                    .size(40.dp)
+                                    .clip(RoundedCornerShape(10.dp))
+                                    .background(item.color.copy(alpha = 0.12f)),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(item.icon, contentDescription = item.title, tint = item.color, modifier = Modifier.size(20.dp))
                             }
-                            Icon(Icons.Default.ChevronRight, contentDescription = title, tint = ElectricGreen)
+                            Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                                Text(item.title, style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.SemiBold), color = MaterialTheme.colorScheme.onSurface)
+                                Text(item.subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                            }
+                            Icon(Icons.Default.ChevronRight, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(18.dp))
                         }
                     }
                 }
@@ -423,32 +525,32 @@ fun DashboardScreen(
     if (showCustomizeDialog) {
         AlertDialog(
             onDismissRequest = { showCustomizeDialog = false },
-            title = { Text("Personnaliser les Widgets du Dashboard") },
+            title = { Text("Affichage du Dashboard") },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
-                        Text("KPIs Financiers & Commerciaux")
+                        Text("Grille des KPIs Financiers & CRM")
                         Switch(
                             checked = widgetConfig.showFinancialKpis,
                             onCheckedChange = { onUpdateWidgets(widgetConfig.copy(showFinancialKpis = it)) }
                         )
                     }
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
-                        Text("Graphique Interactif Revenus/Dépenses")
+                        Text("Graphique Trajectoire & Cashflow")
                         Switch(
                             checked = widgetConfig.showInteractiveChart,
                             onCheckedChange = { onUpdateWidgets(widgetConfig.copy(showInteractiveChart = it)) }
                         )
                     }
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
-                        Text("Bannière d'Alertes Intelligentes")
+                        Text("Bannière d'Alertes Prioritaires")
                         Switch(
                             checked = widgetConfig.showAlertsBanner,
                             onCheckedChange = { onUpdateWidgets(widgetConfig.copy(showAlertsBanner = it)) }
                         )
                     }
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
-                        Text("Suivi des Objectifs & Exécution")
+                        Text("Jauge d'Exécution des Objectifs")
                         Switch(
                             checked = widgetConfig.showProjectsObjectives,
                             onCheckedChange = { onUpdateWidgets(widgetConfig.copy(showProjectsObjectives = it)) }
@@ -458,9 +560,41 @@ fun DashboardScreen(
             },
             confirmButton = {
                 Button(onClick = { showCustomizeDialog = false }) {
-                    Text("Appliquer")
+                    Text("Enregistrer")
                 }
             }
         )
+    }
+}
+
+private data class ModuleDirectoryEntry(
+    val title: String,
+    val subtitle: String,
+    val icon: ImageVector,
+    val color: Color,
+    val target: ErpPrimaryModule
+)
+
+@Composable
+private fun QuickActionPill(
+    label: String,
+    icon: ImageVector,
+    accent: Color,
+    onClick: () -> Unit
+) {
+    Surface(
+        shape = RoundedCornerShape(12.dp),
+        color = MaterialTheme.colorScheme.surface,
+        border = BorderStroke(0.8.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)),
+        modifier = Modifier.clickable { onClick() }
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 9.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Icon(icon, contentDescription = label, tint = accent, modifier = Modifier.size(16.dp))
+            Text(label, style = MaterialTheme.typography.labelLarge.copy(fontSize = 12.sp), color = MaterialTheme.colorScheme.onSurface)
+        }
     }
 }
