@@ -1,9 +1,13 @@
 package com.example.ui.screens
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -11,17 +15,28 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.example.R
 import com.example.data.local.*
 import com.example.ui.components.*
 import com.example.ui.theme.*
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+
+private data class ScreenshotShowcaseItem(
+    val title: String,
+    val subtitle: String,
+    val gitPath: String,
+    val drawableRes: Int
+)
 
 @Composable
 fun AdminSecuritySettingsScreen(
@@ -40,7 +55,7 @@ fun AdminSecuritySettingsScreen(
 ) {
     var selectedSubTab by remember { mutableIntStateOf(0) }
     val subTabs = listOf(
-        "Dépôt GitHub (Mendel Temgoua)",
+        "APK & Captures GitHub",
         "Multi-Tenant & Organisations",
         "RBAC, Sécurité & Audit Logs",
         "Export JSON & Self-Hosting"
@@ -51,55 +66,77 @@ fun AdminSecuritySettingsScreen(
     var showNewMemberDialog by remember { mutableStateOf(false) }
     var selectedRepoFileIndex by remember { mutableIntStateOf(0) }
     var copiedNotice by remember { mutableStateOf<String?>(null) }
+    var zoomedScreenshot by remember { mutableStateOf<ScreenshotShowcaseItem?>(null) }
 
     val clipboardManager = LocalClipboardManager.current
     val dateFormatter = remember { SimpleDateFormat("dd/MM/yyyy HH:mm:ss", Locale.FRANCE) }
 
+    val screenshots = remember {
+        listOf(
+            ScreenshotShowcaseItem(
+                title = "1. Dashboard Exécutif & Cashflow",
+                subtitle = "Trésorerie consolidée, KPIs Bento & Graphique temps réel",
+                gitPath = "docs/screenshots/01_dashboard_executive.jpg",
+                drawableRes = R.drawable.img_preview_dashboard_1794224788236
+            ),
+            ScreenshotShowcaseItem(
+                title = "2. Comptabilité OHADA & Mobile Money",
+                subtitle = "Journaux SYSCOHADA équilibrés, Banque 5211 & MoMo 5521",
+                gitPath = "docs/screenshots/02_ohada_accounting_treasury.jpg",
+                drawableRes = R.drawable.img_preview_ohada_1794224789766
+            ),
+            ScreenshotShowcaseItem(
+                title = "3. Pipeline CRM & Business AI (Ollama/MIT)",
+                subtitle = "Conversion Prospect->Client 1-clic & IA locale sécurisée",
+                gitPath = "docs/screenshots/03_crm_pipeline_business_ai.jpg",
+                drawableRes = R.drawable.img_preview_crm_ai_1794224791024
+            )
+        )
+    }
+
     val githubRepoFiles = remember {
         listOf(
             Triple(
-                "Commandes Git & Publication GitHub",
-                "git_publish_commands.sh",
+                "Commandes Git (APK + Captures incluses)",
+                "git_publish_with_apk.sh",
                 """
-                # Configuration de l'auteur principal : Mendel Temgoua
+                # Configuration de l'auteur : Mendel Temgoua
                 git init
                 git config user.name "Mendel Temgoua"
                 git config user.email "mendeltemgouabusiness@gmail.com"
                 
-                # Ajout de l'ensemble de l'architecture BUSINESS OS 2026
+                # Ajout du code source, de l'APK prêt à l'emploi (releases/) et des captures (docs/screenshots/)
                 git add .
-                git commit -m "feat(erp): initial release of BUSINESS OS 2026 (MIT, Multi-Tenant, OHADA, Pluggable AI) by Mendel Temgoua"
+                git commit -m "feat(release): BUSINESS OS 2026 v2026.1.0-MIT with ready-to-use APK and UI screenshots by Mendel Temgoua"
                 
-                # Publication sur votre dépôt GitHub
+                # Envoi sur GitHub
                 git branch -M main
                 git remote add origin https://github.com/mendeltemgoua/business-os.git
                 git push -u origin main
                 """.trimIndent()
             ),
             Triple(
-                "Arborescence Complète du Dépôt GitHub",
+                "Structure du Dépôt GitHub (avec APK & Captures)",
                 "TREE_STRUCTURE.txt",
                 """
                 business-os/ (Auteur: Mendel Temgoua • Licence MIT)
-                ├── README.md                        # Documentation officielle & badges
-                ├── LICENSE                          # MIT License (c) 2026 Mendel Temgoua
-                ├── SECURITY.md                      # Politique OWASP & Audit Licences
-                ├── docker-compose.yml               # PostgreSQL 16 + Redis 7 + Caddy HTTPS + Ollama
-                ├── .env.example                     # Configuration serveur & IA optionnelle
-                ├── docs/ci-workflow.yml         # Pipeline CI/CD GitHub Actions (Tests & APK)
-                ├── prisma/schema.prisma             # Modèle relationnel PostgreSQL Multi-Tenant
-                ├── scripts/
-                │   ├── backup.sh                    # Sauvegarde automatisée pg_dump + SHA-256
-                │   └── restore.sh                   # Restauration vérifiée avec contrôle d'intégrité
+                ├── README.md                                            # Vitrine GitHub avec bouton Télécharger APK & Galerie Captures
+                ├── LICENSE                                              # MIT License (c) 2026 Mendel Temgoua
+                ├── releases/
+                │   ├── business-os-2026.1.0-MIT-universal.apk           # APK Android compilé prêt à installer !
+                │   ├── business-os-2026.1.0-MIT-universal.apk.sha256    # Empreinte d'intégrité SHA-256 de l'APK
+                │   └── RELEASE_NOTES.md                                 # Notes de version officielles v2026.1.0-MIT
                 ├── docs/
-                │   └── INSTALLATION_GUIDE.md        # Guides Linux, Windows, macOS, Serveur & HTTPS
-                └── app/src/main/java/com/example/   # Code source Kotlin & Jetpack Compose M3
-                    ├── MainActivity.kt              # Navigation centrale 24 modules & Multi-Tenant
-                    ├── data/ai/AiProviderEngine.kt  # Interface AIProvider (Off, Local, Ollama, OpenAI)
-                    ├── data/local/Entities.kt       # 15 tables relationnelles isolées par orgId
-                    ├── data/local/BusinessOsDao.kt  # DAO réactif Flow & Transactions comptables
-                    ├── ui/screens/                  # Dashboard, Finances, OHADA, CRM, Stocks, RH, IA
-                    └── ui/viewmodel/                # BusinessOsViewModel & Export JSON souverain
+                │   ├── screenshots/
+                │   │   ├── 01_dashboard_executive.jpg                   # Capture 1 : Dashboard Exécutif
+                │   │   ├── 02_ohada_accounting_treasury.jpg             # Capture 2 : Comptabilité OHADA & Trésorerie
+                │   │   ├── 03_crm_pipeline_business_ai.jpg              # Capture 3 : Pipeline CRM & Business AI
+                │   │   └── 04_hero_command_center.jpg                   # Bannière Architecture Business OS
+                │   ├── INSTALLATION_GUIDE.md                            # Guides Linux, Windows, macOS, Android & HTTPS
+                │   └── ci-workflow.yml                                  # Pipeline CI/CD
+                ├── prisma/schema.prisma                                 # Schéma PostgreSQL 16 Multi-Tenant (36 tables)
+                ├── scripts/backup.sh & restore.sh                       # Sauvegarde & Restauration chiffrée
+                └── app/src/main/java/com/example/                       # Code source Kotlin & Jetpack Compose M3
                 """.trimIndent()
             ),
             Triple(
@@ -128,19 +165,6 @@ fun AdminSecuritySettingsScreen(
                     profiles: ["ai-local"]
                     ports: ["11434:11434"]
                 """.trimIndent()
-            ),
-            Triple(
-                "Scripts Sauvegarde & Restauration SHA-256",
-                "scripts/backup.sh & restore.sh",
-                """
-                #!/usr/bin/env bash
-                # Sauvegarde Souveraine par Mendel Temgoua
-                BACKUP_DIR="./backups"
-                TIMESTAMP="${'$'}(date -u +"%Y%m%d_%H%M%S")"
-                mkdir -p "${'$'}BACKUP_DIR"
-                docker exec -t postgres pg_dump -U businessos business_os_db | gzip -9 > "${'$'}BACKUP_DIR/pg_${'$'}TIMESTAMP.sql.gz"
-                sha256sum "${'$'}BACKUP_DIR/pg_${'$'}TIMESTAMP.sql.gz" > "${'$'}BACKUP_DIR/pg_${'$'}TIMESTAMP.sql.gz.sha256"
-                """.trimIndent()
             )
         )
     }
@@ -155,17 +179,17 @@ fun AdminSecuritySettingsScreen(
 
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-            contentPadding = PaddingValues(top = 8.dp, bottom = 96.dp)
+            verticalArrangement = Arrangement.spacedBy(14.dp),
+            contentPadding = PaddingValues(top = 8.dp, bottom = 104.dp)
         ) {
             when (selectedSubTab) {
-                // SUBTAB 0: GITHUB REPOSITORY & AUTHORSHIP BY MENDEL TEMGOUA
+                // SUBTAB 0: READY-TO-USE APK RELEASE & SCREENSHOTS GALLERY IN GITHUB
                 0 -> {
                     item {
                         Surface(
-                            shape = RoundedCornerShape(16.dp),
+                            shape = RoundedCornerShape(18.dp),
                             color = MaterialTheme.colorScheme.surface,
-                            border = BorderStroke(1.5.dp, ElectricGreen),
+                            border = BorderStroke(1.2.dp, ElectricGreen),
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -175,26 +199,104 @@ fun AdminSecuritySettingsScreen(
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                        ErpStatusBadge("AUTEUR : MENDEL TEMGOUA", ElectricGreen)
-                                        ErpStatusBadge("MIT OPEN SOURCE", SecondaryEmerald)
+                                        ErpStatusBadge("APK INCLUS DANS GITHUB", ElectricGreen)
+                                        ErpStatusBadge("v2026.1.0-MIT", SecondaryEmerald)
                                     }
-                                    Icon(Icons.Default.Verified, contentDescription = "Certifié", tint = ElectricGreen)
+                                    Icon(Icons.Default.Android, contentDescription = "APK", tint = ElectricGreen)
                                 }
 
                                 Text(
-                                    text = "Dépôt GitHub Officiel — BUSINESS OS 2026",
-                                    style = MaterialTheme.typography.headlineMedium,
+                                    text = "Release APK Prête à l'Emploi — par Mendel Temgoua",
+                                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
                                     color = MaterialTheme.colorScheme.onSurface
                                 )
                                 Text(
-                                    text = "Architecte & Développeur Principal : Mendel Temgoua (mendeltemgouabusiness@gmail.com)\n" +
-                                        "Tous les fichiers du dépôt GitHub (README.md, LICENSE MIT, prisma/schema.prisma, docker-compose.yml, .github/workflows/ci.yml, scripts/backup.sh, scripts/restore.sh et docs/INSTALLATION_GUIDE.md) sont générés et prêts à être poussés ou exportés en ZIP.",
+                                    text = "Fichier inclus dans le dépôt : releases/business-os-2026.1.0-MIT-universal.apk\n" +
+                                        "Signé et vérifié avec somme de contrôle SHA-256 + Galerie de captures d'écran intégrée dans docs/screenshots/ et affichée sur la page d'accueil du README GitHub.",
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
 
+                                Surface(
+                                    shape = RoundedCornerShape(10.dp),
+                                    color = ObsidianBlack,
+                                    border = BorderStroke(0.8.dp, SlateBorder),
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Row(
+                                        modifier = Modifier.padding(12.dp),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Column(modifier = Modifier.weight(1f)) {
+                                            Text("releases/business-os-2026.1.0-MIT-universal.apk", style = MaterialTheme.typography.labelMedium, color = ElectricGreen)
+                                            Text("Android 7.0+ (API 24–36) • Architecture Universelle • 100% Autonome", style = MaterialTheme.typography.bodySmall, color = MutedSteelGray)
+                                        }
+                                        Button(
+                                            onClick = {
+                                                clipboardManager.setText(AnnotatedString("releases/business-os-2026.1.0-MIT-universal.apk"))
+                                                copiedNotice = "Chemin APK copié : releases/business-os-2026.1.0-MIT-universal.apk"
+                                            },
+                                            shape = RoundedCornerShape(8.dp),
+                                            colors = ButtonDefaults.buttonColors(containerColor = ElectricGreen, contentColor = ObsidianBlack),
+                                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
+                                        ) {
+                                            Text("Copier Lien", fontWeight = FontWeight.Bold)
+                                        }
+                                    }
+                                }
+
                                 copiedNotice?.let { notice ->
                                     ErpStatusBadge(notice, ElectricGreen)
+                                }
+                            }
+                        }
+                    }
+
+                    // Interactive Gallery of Official GitHub Screenshots
+                    item {
+                        ErpSectionHeader(
+                            title = "Galerie des Captures d'Écran GitHub (docs/screenshots/)",
+                            subtitle = "Touchez une capture pour l'agrandir en plein écran"
+                        )
+                    }
+
+                    item {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .horizontalScroll(rememberScrollState()),
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            screenshots.forEachIndexed { index, shot ->
+                                Surface(
+                                    shape = RoundedCornerShape(16.dp),
+                                    color = MaterialTheme.colorScheme.surface,
+                                    border = BorderStroke(0.8.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.55f)),
+                                    modifier = Modifier
+                                        .width(210.dp)
+                                        .clickable { zoomedScreenshot = shot }
+                                        .testTag("screenshot_card_$index")
+                                ) {
+                                    Column {
+                                        Image(
+                                            painter = painterResource(id = shot.drawableRes),
+                                            contentDescription = shot.title,
+                                            contentScale = ContentScale.Crop,
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .height(310.dp)
+                                                .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
+                                        )
+                                        Column(
+                                            modifier = Modifier.padding(12.dp),
+                                            verticalArrangement = Arrangement.spacedBy(4.dp)
+                                        ) {
+                                            Text(shot.title, style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold), maxLines = 1)
+                                            Text(shot.subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 2)
+                                            Text(shot.gitPath, style = MaterialTheme.typography.labelSmall, color = ElectricGreen)
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -323,7 +425,7 @@ fun AdminSecuritySettingsScreen(
                         Surface(
                             shape = RoundedCornerShape(12.dp),
                             color = MaterialTheme.colorScheme.surface,
-                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.55f)),
+                            border = BorderStroke(0.8.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.55f)),
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             Row(
@@ -358,7 +460,7 @@ fun AdminSecuritySettingsScreen(
                         Surface(
                             shape = RoundedCornerShape(14.dp),
                             color = MaterialTheme.colorScheme.surface,
-                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.65f)),
+                            border = BorderStroke(0.8.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.65f)),
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -397,7 +499,7 @@ fun AdminSecuritySettingsScreen(
                         Surface(
                             shape = RoundedCornerShape(12.dp),
                             color = MaterialTheme.colorScheme.surface,
-                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.55f)),
+                            border = BorderStroke(0.8.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.55f)),
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -461,6 +563,32 @@ fun AdminSecuritySettingsScreen(
                 }
             }
         }
+    }
+
+    // Full-Screen Screenshot Preview Modal
+    zoomedScreenshot?.let { shot ->
+        AlertDialog(
+            onDismissRequest = { zoomedScreenshot = null },
+            title = { Text(shot.title, style = MaterialTheme.typography.titleMedium) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Image(
+                        painter = painterResource(id = shot.drawableRes),
+                        contentDescription = shot.title,
+                        contentScale = ContentScale.Fit,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .heightIn(max = 420.dp)
+                            .clip(RoundedCornerShape(12.dp))
+                    )
+                    Text(shot.subtitle, style = MaterialTheme.typography.bodySmall)
+                    Text("Fichier GitHub : ${shot.gitPath}", style = MaterialTheme.typography.labelSmall, color = ElectricGreen)
+                }
+            },
+            confirmButton = {
+                Button(onClick = { zoomedScreenshot = null }) { Text("Fermer") }
+            }
+        )
     }
 
     // Dialog: Exported JSON Preview

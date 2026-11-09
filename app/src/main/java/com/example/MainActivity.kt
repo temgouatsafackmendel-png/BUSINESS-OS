@@ -14,6 +14,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.*
@@ -26,6 +27,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -87,6 +89,10 @@ fun BusinessOsRootShell(vm: BusinessOsViewModel) {
 
     var showOrgSwitcherMenu by remember { mutableStateOf(false) }
     var showCommandPalette by remember { mutableStateOf(false) }
+    var showQuickCreateSheet by remember { mutableStateOf(false) }
+    var showInstantInvoiceModal by remember { mutableStateOf(false) }
+    var showInstantTxModal by remember { mutableStateOf(false) }
+
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
 
@@ -98,7 +104,7 @@ fun BusinessOsRootShell(vm: BusinessOsViewModel) {
             Triple(ErpPrimaryModule.OPERATIONS, "Stocks", Icons.Default.Inventory2),
             Triple(ErpPrimaryModule.HR_PROJECTS, "RH & Projets", Icons.Default.Badge),
             Triple(ErpPrimaryModule.DOCS_AI_AUTO, "IA & GED", Icons.Default.AutoAwesome),
-            Triple(ErpPrimaryModule.ADMIN_SECURITY, "Admin & Git", Icons.Default.AdminPanelSettings)
+            Triple(ErpPrimaryModule.ADMIN_SECURITY, "APK & GitHub", Icons.Default.AdminPanelSettings)
         )
     }
 
@@ -198,6 +204,17 @@ fun BusinessOsRootShell(vm: BusinessOsViewModel) {
             Scaffold(
                 modifier = Modifier.fillMaxSize(),
                 containerColor = MaterialTheme.colorScheme.background,
+                floatingActionButton = {
+                    ExtendedFloatingActionButton(
+                        onClick = { showQuickCreateSheet = true },
+                        containerColor = ElectricGreen,
+                        contentColor = ObsidianBlack,
+                        shape = RoundedCornerShape(14.dp),
+                        icon = { Icon(Icons.Default.Bolt, contentDescription = "Action Rapide") },
+                        text = { Text("Action Rapide", fontWeight = FontWeight.Bold) },
+                        modifier = Modifier.testTag("global_quick_action_fab")
+                    )
+                },
                 topBar = {
                     Surface(
                         color = MaterialTheme.colorScheme.background,
@@ -238,22 +255,17 @@ fun BusinessOsRootShell(vm: BusinessOsViewModel) {
                                     }
 
                                     Column {
-                                        Row(
-                                            verticalAlignment = Alignment.CenterVertically,
-                                            horizontalArrangement = Arrangement.spacedBy(6.dp)
-                                        ) {
-                                            Text(
-                                                text = currentModule.title,
-                                                style = MaterialTheme.typography.titleMedium.copy(
-                                                    fontFamily = SpaceGroteskFontFamily,
-                                                    fontWeight = FontWeight.Bold,
-                                                    fontSize = 16.sp
-                                                ),
-                                                color = MaterialTheme.colorScheme.onSurface,
-                                                maxLines = 1,
-                                                overflow = TextOverflow.Ellipsis
-                                            )
-                                        }
+                                        Text(
+                                            text = currentModule.title,
+                                            style = MaterialTheme.typography.titleMedium.copy(
+                                                fontFamily = SpaceGroteskFontFamily,
+                                                fontWeight = FontWeight.Bold,
+                                                fontSize = 16.sp
+                                            ),
+                                            color = MaterialTheme.colorScheme.onSurface,
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis
+                                        )
                                         Text(
                                             text = activeOrg?.name ?: "BUSINESS OS",
                                             style = MaterialTheme.typography.bodySmall.copy(fontSize = 11.5.sp),
@@ -264,7 +276,7 @@ fun BusinessOsRootShell(vm: BusinessOsViewModel) {
                                     }
                                 }
 
-                                // Right: Command Search (⌘K), Organization Pill, Theme Toggle
+                                // Right: Command Search (⌘K), APK/GitHub Shortcut, Organization Pill, Theme Toggle
                                 Row(
                                     verticalAlignment = Alignment.CenterVertically,
                                     horizontalArrangement = Arrangement.spacedBy(6.dp)
@@ -391,13 +403,12 @@ fun BusinessOsRootShell(vm: BusinessOsViewModel) {
                 },
                 bottomBar = {
                     if (!isWideScreen) {
-                        // Clean, Modern Material 3 NavigationBar with 5 Core Pillars + Drawer Trigger for 100% Uncluttered Ergonomics
                         val primaryFive = listOf(
                             Triple(ErpPrimaryModule.DASHBOARD, "Pilotage", Icons.Default.SpaceDashboard),
                             Triple(ErpPrimaryModule.FINANCES, "Finances", Icons.Default.AccountBalance),
                             Triple(ErpPrimaryModule.CRM_SALES, "CRM", Icons.Default.PointOfSale),
-                            Triple(ErpPrimaryModule.OPERATIONS, "Stocks", Icons.Default.Inventory2),
-                            Triple(ErpPrimaryModule.DOCS_AI_AUTO, "IA & Auto", Icons.Default.AutoAwesome)
+                            Triple(ErpPrimaryModule.DOCS_AI_AUTO, "IA & GED", Icons.Default.AutoAwesome),
+                            Triple(ErpPrimaryModule.ADMIN_SECURITY, "APK & Git", Icons.Default.AdminPanelSettings)
                         )
                         Surface(
                             color = MaterialTheme.colorScheme.surface,
@@ -566,6 +577,169 @@ fun BusinessOsRootShell(vm: BusinessOsViewModel) {
                 }
             }
         }
+    }
+
+    // Universal Quick Action Modal Bottom Sheet (UX Accelerator)
+    if (showQuickCreateSheet) {
+        ModalBottomSheet(
+            onDismissRequest = { showQuickCreateSheet = false },
+            containerColor = MaterialTheme.colorScheme.surface
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp, vertical = 12.dp)
+                    .padding(bottom = 24.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                Text(
+                    text = "Actions Rapides BUSINESS OS",
+                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
+                )
+                Text(
+                    text = "Exécutez une opération métier immédiate où que vous soyez",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+
+                val quickSheetActions = listOf(
+                    Triple("Enregistrer une Transaction (MoMo / Banque)", "Encaissement ou dépense avec écriture OHADA automatique", Icons.Default.AddCard) to {
+                        showQuickCreateSheet = false
+                        showInstantTxModal = true
+                    },
+                    Triple("Émettre une Facture ou un Devis Client", "Calcul automatique de la TVA (${activeOrg?.defaultVatPercent ?: 19.25}%)", Icons.Default.Receipt) to {
+                        showQuickCreateSheet = false
+                        showInstantInvoiceModal = true
+                    },
+                    Triple("Consulter l'APK & les Captures d'Écran GitHub", "Voir releases/business-os-2026.1.0-MIT-universal.apk & Galerie", Icons.Default.Android) to {
+                        showQuickCreateSheet = false
+                        vm.selectModule(ErpPrimaryModule.ADMIN_SECURITY)
+                    },
+                    Triple("Analyser la Trésorerie avec Business AI", "Diagnostic financier OHADA local & relances clients", Icons.Default.AutoAwesome) to {
+                        showQuickCreateSheet = false
+                        vm.selectModule(ErpPrimaryModule.DOCS_AI_AUTO)
+                        vm.sendAiPrompt("Synthèse exécutive de la trésorerie, des factures impayées et des stocks critiques")
+                    }
+                )
+
+                quickSheetActions.forEach { (info, action) ->
+                    Surface(
+                        shape = RoundedCornerShape(14.dp),
+                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.55f),
+                        border = BorderStroke(0.8.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.4f)),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { action() }
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(14.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(38.dp)
+                                    .clip(RoundedCornerShape(10.dp))
+                                    .background(ElectricGreen.copy(alpha = 0.14f)),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(info.third, contentDescription = null, tint = ElectricGreen, modifier = Modifier.size(19.dp))
+                            }
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(info.first, style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.SemiBold))
+                                Text(info.second, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            }
+                            Icon(Icons.Default.ChevronRight, contentDescription = null, tint = ElectricGreen)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // Instant Transaction Modal from Global FAB
+    if (showInstantTxModal) {
+        val currency = activeOrg?.currency ?: "XAF"
+        var txType by remember { mutableStateOf("INCOME") }
+        var amountStr by remember { mutableStateOf("") }
+        var method by remember { mutableStateOf("MTN_MOMO") }
+        var desc by remember { mutableStateOf("Règlement Client Express") }
+
+        AlertDialog(
+            onDismissRequest = { showInstantTxModal = false },
+            title = { Text("Transaction Rapide ($currency)") },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        FilterChip(selected = txType == "INCOME", onClick = { txType = "INCOME" }, label = { Text("Encaissement (+)") })
+                        FilterChip(selected = txType == "EXPENSE", onClick = { txType = "EXPENSE" }, label = { Text("Décaissement (-)") })
+                    }
+                    OutlinedTextField(
+                        value = amountStr,
+                        onValueChange = { amountStr = it },
+                        label = { Text("Montant ($currency)") },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        singleLine = true
+                    )
+                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        listOf("MTN_MOMO", "ORANGE_MONEY", "BANK_TRANSFER", "MANUAL").forEach { m ->
+                            FilterChip(selected = method == m, onClick = { method = m }, label = { Text(m, style = MaterialTheme.typography.labelSmall) })
+                        }
+                    }
+                    OutlinedTextField(value = desc, onValueChange = { desc = it }, label = { Text("Libellé") }, singleLine = true)
+                }
+            },
+            confirmButton = {
+                Button(onClick = {
+                    val amt = amountStr.toDoubleOrNull() ?: 0.0
+                    if (amt > 0.0) {
+                        vm.recordTransaction(accounts.firstOrNull()?.id ?: 1L, txType, "Opération Express", amt, method, desc, "EXP-REF")
+                        showInstantTxModal = false
+                    }
+                }) { Text("Valider") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showInstantTxModal = false }) { Text("Annuler") }
+            }
+        )
+    }
+
+    // Instant Invoice Modal from Global FAB
+    if (showInstantInvoiceModal) {
+        val currency = activeOrg?.currency ?: "XAF"
+        var clientName by remember { mutableStateOf(contacts.firstOrNull { it.kind == "CUSTOMER" }?.companyName ?: "Client Entreprise") }
+        var desc by remember { mutableStateOf("Licence & Intégration BUSINESS OS") }
+        var subtotalStr by remember { mutableStateOf("") }
+
+        AlertDialog(
+            onDismissRequest = { showInstantInvoiceModal = false },
+            title = { Text("Facture Express ($currency)") },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    OutlinedTextField(value = clientName, onValueChange = { clientName = it }, label = { Text("Client") }, singleLine = true)
+                    OutlinedTextField(value = desc, onValueChange = { desc = it }, label = { Text("Prestation / Produit") }, singleLine = true)
+                    OutlinedTextField(
+                        value = subtotalStr,
+                        onValueChange = { subtotalStr = it },
+                        label = { Text("Montant HT ($currency)") },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        singleLine = true
+                    )
+                }
+            },
+            confirmButton = {
+                Button(onClick = {
+                    val sub = subtotalStr.toDoubleOrNull() ?: 0.0
+                    if (sub > 0.0) {
+                        vm.createCommercialDocument(1L, clientName, "INVOICE", desc, sub, 15)
+                        showInstantInvoiceModal = false
+                    }
+                }) { Text("Émettre Facture") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showInstantInvoiceModal = false }) { Text("Annuler") }
+            }
+        )
     }
 
     // Global Command Palette & Quick Search Modal (⌘K)

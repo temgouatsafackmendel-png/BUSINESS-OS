@@ -1,9 +1,11 @@
 package com.example.ui.screens
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -45,12 +47,32 @@ fun FinanceAccountingScreen(
         "Bilan, Résultat & Taxes"
     )
 
+    var searchQuery by remember { mutableStateOf("") }
+    var txTypeFilter by remember { mutableStateOf("ALL") } // ALL, INCOME, EXPENSE, MOMO
+
     var showNewTxDialog by remember { mutableStateOf(false) }
     var showNewAccDialog by remember { mutableStateOf(false) }
     var showNewOhadaDialog by remember { mutableStateOf(false) }
     var txToReverse by remember { mutableStateOf<TransactionEntity?>(null) }
 
     val dateFormatter = remember { SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.FRANCE) }
+
+    val filteredTransactions = remember(transactions, searchQuery, txTypeFilter) {
+        transactions.filter { tx ->
+            val matchesSearch = searchQuery.isBlank() ||
+                tx.description.contains(searchQuery, ignoreCase = true) ||
+                tx.reference.contains(searchQuery, ignoreCase = true) ||
+                tx.category.contains(searchQuery, ignoreCase = true) ||
+                tx.paymentMethod.contains(searchQuery, ignoreCase = true)
+            val matchesType = when (txTypeFilter) {
+                "INCOME" -> tx.type == "INCOME"
+                "EXPENSE" -> tx.type == "EXPENSE"
+                "MOMO" -> tx.paymentMethod.contains("MOMO") || tx.paymentMethod.contains("ORANGE") || tx.paymentMethod.contains("CAMPAY")
+                else -> true
+            }
+            matchesSearch && matchesType
+        }
+    }
 
     Column(modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp)) {
         ErpSubTabRow(
@@ -63,7 +85,7 @@ fun FinanceAccountingScreen(
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
             verticalArrangement = Arrangement.spacedBy(12.dp),
-            contentPadding = PaddingValues(top = 8.dp, bottom = 96.dp)
+            contentPadding = PaddingValues(top = 8.dp, bottom = 104.dp)
         ) {
             when (selectedSubTab) {
                 // SUBTAB 0: TRÉSORERIE & COMPTES
@@ -77,6 +99,40 @@ fun FinanceAccountingScreen(
                         )
                     }
 
+                    val totalCash = accounts.filter { it.type == "BANK" || it.type == "MOBILE_MONEY" || it.type == "CASH" }.sumOf { it.balanceCents }
+                    item {
+                        Surface(
+                            shape = RoundedCornerShape(14.dp),
+                            color = ElectricGreen.copy(alpha = 0.1f),
+                            border = BorderStroke(0.8.dp, ElectricGreen.copy(alpha = 0.4f)),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(14.dp).fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Column {
+                                    Text("Liquidités Immédiatement Disponibles", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                    Text(
+                                        BusinessOsViewModel.formatMoney(totalCash, currency),
+                                        style = MaterialTheme.typography.headlineMedium.copy(fontFamily = JetBrainsMonoFontFamily, fontWeight = FontWeight.Bold),
+                                        color = ElectricGreen
+                                    )
+                                }
+                                Button(
+                                    onClick = { showNewTxDialog = true },
+                                    shape = RoundedCornerShape(10.dp),
+                                    colors = ButtonDefaults.buttonColors(containerColor = ElectricGreen, contentColor = ObsidianBlack)
+                                ) {
+                                    Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(16.dp))
+                                    Spacer(Modifier.width(4.dp))
+                                    Text("Opération", fontWeight = FontWeight.Bold)
+                                }
+                            }
+                        }
+                    }
+
                     items(accounts, key = { it.id }) { acc ->
                         val badgeColor = when (acc.type) {
                             "BANK" -> ElectricGreen
@@ -88,7 +144,7 @@ fun FinanceAccountingScreen(
                         Surface(
                             shape = RoundedCornerShape(14.dp),
                             color = MaterialTheme.colorScheme.surface,
-                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.65f)),
+                            border = BorderStroke(0.8.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)),
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             Row(
@@ -114,7 +170,7 @@ fun FinanceAccountingScreen(
                     }
                 }
 
-                // SUBTAB 1: TRANSACTIONS & PAIEMENTS
+                // SUBTAB 1: TRANSACTIONS & PAIEMENTS (WITH UX SEARCH & FILTERS)
                 1 -> {
                     item {
                         ErpSectionHeader(
@@ -125,11 +181,51 @@ fun FinanceAccountingScreen(
                         )
                     }
 
+                    // Instant UX Search & Quick Filter Pills
+                    item {
+                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            OutlinedTextField(
+                                value = searchQuery,
+                                onValueChange = { searchQuery = it },
+                                placeholder = { Text("Filtrer par référence, libellé, MTN MoMo, catégorie...") },
+                                leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = ElectricGreen) },
+                                trailingIcon = {
+                                    if (searchQuery.isNotEmpty()) {
+                                        IconButton(onClick = { searchQuery = "" }) {
+                                            Icon(Icons.Default.Clear, contentDescription = "Effacer")
+                                        }
+                                    }
+                                },
+                                singleLine = true,
+                                shape = RoundedCornerShape(12.dp),
+                                modifier = Modifier.fillMaxWidth().testTag("tx_search_input")
+                            )
+
+                            Row(
+                                modifier = Modifier.horizontalScroll(rememberScrollState()),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                listOf(
+                                    "ALL" to "Toutes (${transactions.size})",
+                                    "INCOME" to "Revenus (+)",
+                                    "EXPENSE" to "Dépenses (-)",
+                                    "MOMO" to "Mobile Money"
+                                ).forEach { (code, label) ->
+                                    FilterChip(
+                                        selected = txTypeFilter == code,
+                                        onClick = { txTypeFilter = code },
+                                        label = { Text(label, style = MaterialTheme.typography.labelSmall) }
+                                    )
+                                }
+                            }
+                        }
+                    }
+
                     item {
                         Surface(
                             shape = RoundedCornerShape(12.dp),
                             color = ElectricGreen.copy(alpha = 0.08f),
-                            border = BorderStroke(1.dp, ElectricGreen.copy(alpha = 0.35f)),
+                            border = BorderStroke(0.8.dp, ElectricGreen.copy(alpha = 0.35f)),
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             Row(
@@ -139,7 +235,7 @@ fun FinanceAccountingScreen(
                             ) {
                                 Icon(Icons.Default.VerifiedUser, contentDescription = "Audit", tint = ElectricGreen)
                                 Text(
-                                    text = "Règle d'Intégrité Comptable : Une transaction validée ne peut jamais être supprimée silencieusement. Toute annulation génère une écriture de contre-passation OHADA et un Audit Log.",
+                                    text = "Protection Comptable : Une transaction validée ne peut jamais être supprimée silencieusement. Toute annulation génère une écriture de contre-passation OHADA.",
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurface
                                 )
@@ -147,7 +243,7 @@ fun FinanceAccountingScreen(
                         }
                     }
 
-                    items(transactions, key = { it.id }) { tx ->
+                    items(filteredTransactions, key = { it.id }) { tx ->
                         val isIncome = tx.type == "INCOME"
                         val isReversed = tx.status == "REVERSED"
                         val amountColor = when {
@@ -158,7 +254,7 @@ fun FinanceAccountingScreen(
                         Surface(
                             shape = RoundedCornerShape(14.dp),
                             color = MaterialTheme.colorScheme.surface,
-                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.6f)),
+                            border = BorderStroke(0.8.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)),
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -219,20 +315,21 @@ fun FinanceAccountingScreen(
                     val totalDebit = accountingEntries.sumOf { it.amountCents }
                     item {
                         Surface(
-                            shape = RoundedCornerShape(12.dp),
-                            color = MaterialTheme.colorScheme.surfaceVariant,
+                            shape = RoundedCornerShape(14.dp),
+                            color = ElectricGreen.copy(alpha = 0.1f),
+                            border = BorderStroke(0.8.dp, ElectricGreen.copy(alpha = 0.4f)),
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             Row(
-                                modifier = Modifier.padding(12.dp).fillMaxWidth(),
+                                modifier = Modifier.padding(14.dp).fillMaxWidth(),
                                 horizontalArrangement = Arrangement.SpaceBetween,
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Column {
-                                    Text("Contrôle d'Équilibre de la Balance", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                    Text("Contrôle d'Équilibre de la Balance SYSCOHADA", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                     Text(
                                         "Total Débit = Total Crédit : ${BusinessOsViewModel.formatMoney(totalDebit, currency)}",
-                                        style = MaterialTheme.typography.titleMedium.copy(fontFamily = JetBrainsMonoFontFamily),
+                                        style = MaterialTheme.typography.titleMedium.copy(fontFamily = JetBrainsMonoFontFamily, fontWeight = FontWeight.Bold),
                                         color = ElectricGreen
                                     )
                                 }
@@ -245,7 +342,7 @@ fun FinanceAccountingScreen(
                         Surface(
                             shape = RoundedCornerShape(14.dp),
                             color = MaterialTheme.colorScheme.surface,
-                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.6f)),
+                            border = BorderStroke(0.8.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)),
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -329,7 +426,7 @@ fun FinanceAccountingScreen(
                         Surface(
                             shape = RoundedCornerShape(14.dp),
                             color = MaterialTheme.colorScheme.surface,
-                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.65f)),
+                            border = BorderStroke(0.8.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)),
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -359,7 +456,7 @@ fun FinanceAccountingScreen(
                         Surface(
                             shape = RoundedCornerShape(14.dp),
                             color = MaterialTheme.colorScheme.surface,
-                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.65f)),
+                            border = BorderStroke(0.8.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)),
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -384,7 +481,7 @@ fun FinanceAccountingScreen(
                         Surface(
                             shape = RoundedCornerShape(14.dp),
                             color = MaterialTheme.colorScheme.surface,
-                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.65f)),
+                            border = BorderStroke(0.8.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)),
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {

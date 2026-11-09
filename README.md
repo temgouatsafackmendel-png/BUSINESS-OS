@@ -2,11 +2,33 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-39FF88.svg)](./LICENSE)
 [![Author: Mendel Temgoua](https://img.shields.io/badge/Author-Mendel%20Temgoua-16C784.svg)](mailto:mendeltemgouabusiness@gmail.com)
+[![Download APK](https://img.shields.io/badge/APK%20Android-v2026.1.0--MIT%20(Pr%C3%AAt%20%C3%A0%20installer)-39FF88.svg)](./releases/business-os-2026.1.0-MIT-universal.apk)
 [![Architecture: Multi-Tenant](https://img.shields.io/badge/Architecture-Multi--Tenant%20%E2%80%A2%20OHADA-090D12.svg)](#architecture)
-[![AI: Pluggable & Optional](https://img.shields.io/badge/AI-Optional%20%E2%80%A2%20Ollama%20%E2%80%A2%20Local-38BDF8.svg)](#business-ai)
 
 > **Conçu et développé par Mendel Temgoua** (`mendeltemgouabusiness@gmail.com`)  
 > Logiciel ERP Open Source sous licence **MIT**, 100 % gratuit en licence, auto-hébergeable, multi-entreprises (Multi-Tenant), conforme **SYSCOHADA Révisé / IFRS** et doté d'une architecture **AI-Ready** entièrement désactivable et interchangeable.
+
+---
+
+## 📲 Téléchargement Direct de l'APK (Prêt à Utiliser)
+
+Une version compilée et signée de l'application Android **BUSINESS OS (`v2026.1.0-MIT`)** est directement incluse dans le dossier [`releases/`](./releases/) de ce dépôt GitHub :
+
+- 📦 **Télécharger l'APK Universel** : [**`releases/business-os-2026.1.0-MIT-universal.apk`**](./releases/business-os-2026.1.0-MIT-universal.apk)
+- 🔐 **Somme de contrôle SHA-256** : [**`releases/business-os-2026.1.0-MIT-universal.apk.sha256`**](./releases/business-os-2026.1.0-MIT-universal.apk.sha256)
+- 📋 **Notes de version** : [**`releases/RELEASE_NOTES.md`**](./releases/RELEASE_NOTES.md)
+- **Compatibilité** : Android 7.0+ (API 24 à 36) • Fonctionne **100 % hors-ligne** dès l'installation avec base SQLite pré-initialisée (2 sociétés Multi-Tenant de démonstration : *TechNova Africa SARL* en `XAF` et *HexaCloud Enterprise SAS* en `EUR`).
+
+---
+
+## 📸 Captures d'Écran Officielles (`v2026.1.0-MIT`)
+
+![Bannière Architecture Business OS](./docs/screenshots/04_hero_command_center.jpg)
+
+| 1. Dashboard Exécutif & Cashflow | 2. Comptabilité OHADA & Mobile Money | 3. Pipeline CRM & Business AI (Ollama/MIT) |
+| :---: | :---: | :---: |
+| ![Dashboard Exécutif](./docs/screenshots/01_dashboard_executive.jpg) | ![Comptabilité OHADA & Trésorerie](./docs/screenshots/02_ohada_accounting_treasury.jpg) | ![Pipeline CRM & Business AI](./docs/screenshots/03_crm_pipeline_business_ai.jpg) |
+| *Trésorerie consolidée, KPIs Bento & Graphique temps réel* | *Journaux SYSCOHADA équilibrés, Banque 5211 & MoMo 5521* | *Conversion Prospect $\rightarrow$ Client 1-clic & IA locale sécurisée* |
 
 ---
 
@@ -25,10 +47,22 @@
 
 ```text
 business-os/
+├── releases/                                 # APK Android prêt à l'emploi & sommes de contrôle
+│   ├── business-os-2026.1.0-MIT-universal.apk
+│   ├── business-os-2026.1.0-MIT-universal.apk.sha256
+│   └── RELEASE_NOTES.md
+├── docs/
+│   ├── screenshots/                          # Captures d'écran officielles haute définition
+│   │   ├── 01_dashboard_executive.jpg
+│   │   ├── 02_ohada_accounting_treasury.jpg
+│   │   ├── 03_crm_pipeline_business_ai.jpg
+│   │   └── 04_hero_command_center.jpg
+│   ├── INSTALLATION_GUIDE.md                 # Guides Windows, Linux, macOS, Serveur, Caddy HTTPS & MAJ
+│   └── ci-workflow.yml                       # Pipeline CI/CD GitHub Actions (Tests, Build APK, Audit)
 ├── app/                                      # Application Android Native (Kotlin & Jetpack Compose M3)
 │   └── src/
 │       ├── main/java/com/example/
-│       │   ├── MainActivity.kt               # Shell adaptatif Multi-Tenant & Navigation centrale
+│       │   ├── MainActivity.kt               # Shell adaptatif Multi-Tenant, FAB Action Rapide & ⌘K
 │       │   ├── data/
 │       │   │   ├── ai/AiProviderEngine.kt    # Interface AIProvider (Disabled, Local, Ollama, OpenAI)
 │       │   │   └── local/
@@ -37,7 +71,7 @@ business-os/
 │       │   │       └── BusinessOsDatabase.kt # Moteur SQLite Room + Initialisation Multi-Sociétés
 │       │   └── ui/
 │       │       ├── components/               # Système de design Business OS (#090D12 / #39FF88)
-│       │       ├── screens/                  # Les 24 modules ERP regroupés en 7 pôles métiers
+│       │       ├── screens/                  # Les 24 modules ERP regroupés en pôles métiers
 │       │       ├── theme/                    # Palette officielle, Mode Sombre/Clair & Typographie
 │       │       └── viewmodel/                # Logique métier, Comptabilité OHADA & Export JSON
 │       └── test/java/com/example/            # Tests Unitaires, Financiers, Garde-Fous IA & Robolectric
@@ -46,14 +80,9 @@ business-os/
 ├── scripts/
 │   ├── backup.sh                             # Sauvegarde automatisée & chiffrée (PostgreSQL & SQLite)
 │   └── restore.sh                            # Procédure de restauration vérifiée avec contrôle SHA-256
-├── docs/
-│   ├── INSTALLATION_GUIDE.md                 # Guides Windows, Linux, macOS, Serveur, Caddy HTTPS & MAJ
-│   └── ci-workflow.yml                       # Pipeline CI/CD GitHub Actions (Tests, Build APK, Audit)
 ├── docker-compose.yml                        # Stack Auto-Hébergée (PostgreSQL 16, Redis 7, Caddy, Ollama)
 ├── .env.example                              # Variables d'environnement documentées (100% optionnelles)
-├── CONTRIBUTING.md                           # Guide de contribution Open Source
-├── SECURITY.md                               # Politique de sécurité OWASP & divulgation responsable
-├── THIRD_PARTY_LICENSES.md                   # Vérification des licences des dépendances (Apache 2.0 / MIT)
+├── SECURITY.md                               # Politique de sécurité OWASP & audit licences
 └── LICENSE                                   # Licence MIT — Copyright (c) 2026 Mendel Temgoua
 ```
 
@@ -74,29 +103,7 @@ business-os/
 
 ---
 
-## 4. Démarrage Rapide (Git & Auto-Hébergement)
-
-### Cloner le dépôt
-```bash
-git clone https://github.com/mendeltemgoua/business-os.git
-cd business-os
-```
-
-### Lancer l'application Android (Local-First)
-```bash
-gradle :app:assembleDebug
-gradle :app:testDebugUnitTest
-```
-
-### Déployer l'infrastructure Serveur Auto-Hébergée (Docker Compose)
-```bash
-cp .env.example .env
-docker compose up -d
-```
-
----
-
-## 5. Auteur & Licence
+## 4. Auteur & Licence
 
 - **Auteur Principal & Architecte Système** : **Mendel Temgoua**
 - **Contact Professionnel** : [mendeltemgouabusiness@gmail.com](mailto:mendeltemgouabusiness@gmail.com)
